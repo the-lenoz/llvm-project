@@ -1032,6 +1032,8 @@ def err_pp_module_name_is_macro : Error<
   "%select{module|partition}0 name component %1 cannot be a object-like macro">;
 def err_pp_module_expected_ident : Error<
   "expected %select{identifier after '.' in |}0module name">;
+def err_pp_expected_private_after_module_colon
+    : Error<"expected 'private' after ':' ">;
 def warn_pp_extra_tokens_at_module_directive_eol
     : Warning<"extra tokens after semicolon in '%0' directive">,
       InGroup<ExtraTokens>;

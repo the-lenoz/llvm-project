@@ -4362,11 +4362,11 @@ void Preprocessor::HandleCXXModuleDirective(Token ModuleTok) {
     DirToks.push_back(Tok);
     LexUnexpandedToken(Tok);
     if (Tok.isNot(tok::kw_private)) {
+      Diag(Tok, diag::err_pp_expected_private_after_module_colon);
       if (Tok.isNot(tok::eod))
-        CheckEndOfDirective(ModuleTok.getIdentifierInfo()->getName(),
-                            /*EnableMacros=*/false, &DirToks);
-      EnterModuleSuffixTokenStream(DirToks);
-      return;
+        DiscardUntilEndOfDirective(Tok);
+
+      DirToks.push_back(Token::create(tok::semi, Tok.getLocation()));
     }
     DirToks.push_back(Tok);
     break;
