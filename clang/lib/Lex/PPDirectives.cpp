@@ -4359,7 +4359,7 @@ void Preprocessor::HandleCXXModuleDirective(Token ModuleTok) {
     DirToks.push_back(Tok);
     break;
   case tok::colon:
-    DirToks.push_back(Tok);    
+    DirToks.push_back(Tok);
     LexUnexpandedToken(Tok);
     if (Tok.isNot(tok::kw_private)) {
       // Remember wrong token location.
@@ -4370,7 +4370,7 @@ void Preprocessor::HandleCXXModuleDirective(Token ModuleTok) {
       // declarations.
       while (Tok.isNoneOf(tok::semi, tok::eod, tok::eof))
         LexUnexpandedNonComment(Tok);
-      
+
       // Add synthetic semicolon to let parser recover
       // assign its location to wrong token's to let parser highlight it in diagnostics.
       DirToks.push_back(Token::create(tok::semi, WrongTokLoc));
