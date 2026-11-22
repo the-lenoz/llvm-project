@@ -15,6 +15,7 @@
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/ASTLambda.h"
 #include "clang/AST/DeclTemplate.h"
+#include "clang/Basic/DiagnosticLex.h"
 #include "clang/Basic/DiagnosticParse.h"
 #include "clang/Basic/StackExhaustionHandler.h"
 #include "clang/Basic/TokenKinds.h"
@@ -2377,24 +2378,35 @@ Parser::ParseModuleDecl(Sema::ModuleImportState &ImportState) {
   }
 
   // Parse a private-module-fragment, if present.
-  if (getLangOpts().CPlusPlusModules && Tok.is(tok::colon) &&
-      NextToken().is(tok::kw_private)) {
-    if (MDK == Sema::ModuleDeclKind::Interface) {
-      Diag(StartLoc, diag::err_module_fragment_exported)
-        << /*private*/1 << FixItHint::CreateRemoval(StartLoc);
+  if (getLangOpts().CPlusPlusModules && Tok.is(tok::colon)) {
+    if (NextToken().is(tok::kw_private)) {
+      if (MDK == Sema::ModuleDeclKind::Interface) {
+        Diag(StartLoc, diag::err_module_fragment_exported)
+            << /*private*/ 1 << FixItHint::CreateRemoval(StartLoc);
+      }
+      ConsumeToken();
+      SourceLocation PrivateLoc = ConsumeToken();
+      DiagnoseAndSkipCXX11Attributes();
+      ExpectAndConsumeSemi(diag::err_private_module_fragment_expected_semi);
+      auto Result =
+          Actions.ActOnPrivateModuleFragmentDecl(ModuleLoc, PrivateLoc);
+      if (Result) {
+        ImportState =
+            ImportState == Sema::ModuleImportState::ImportAllowed
+                ? Sema::ModuleImportState::PrivateFragmentImportAllowed
+                : Sema::ModuleImportState::PrivateFragmentImportFinished;
+      }
+      return nullptr;
     }
-    ConsumeToken();
-    SourceLocation PrivateLoc = ConsumeToken();
-    DiagnoseAndSkipCXX11Attributes();
-    ExpectAndConsumeSemi(diag::err_private_module_fragment_expected_semi);
-    auto Result = Actions.ActOnPrivateModuleFragmentDecl(ModuleLoc, PrivateLoc);
-    if (Result) {
-      ImportState =
-          ImportState == Sema::ModuleImportState::ImportAllowed
-              ? Sema::ModuleImportState::PrivateFragmentImportAllowed
-              : Sema::ModuleImportState::PrivateFragmentImportFinished;
+
+    if (MDK == Sema::ModuleDeclKind::Implementation) {
+      // Unexpected token (expecting 'private' keyword)
+      Diag(Tok, diag::err_expected) << tok::kw_private;
+    } else {
+      // Module fragment exported, so the colon is unexpected
+      Diag(Tok, diag::err_pp_module_expected_ident);
     }
-    return nullptr;
+    SkipUntil(tok::semi, tok::eod, SkipUntilFlags::StopBeforeMatch);
   }
   SmallVector<IdentifierLoc, 2> Path;
   if (ParseModuleName(ModuleLoc, Path, /*IsImport*/ false))
