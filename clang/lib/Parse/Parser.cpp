@@ -2403,10 +2403,10 @@ Parser::ParseModuleDecl(Sema::ModuleImportState &ImportState) {
       // Unexpected token (expecting 'private' keyword)
       Diag(Tok, diag::err_expected) << tok::kw_private;
     } else {
-      // Module fragment exported, so the colon is unexpected
-      Diag(Tok, diag::err_pp_module_expected_ident);
+      Diag(Tok, diag::err_expected_module_name);
     }
-    SkipUntil(tok::semi, SkipUntilFlags::StopBeforeMatch);
+    SkipUntil(tok::semi);
+    return nullptr;
   }
   SmallVector<IdentifierLoc, 2> Path;
   if (ParseModuleName(ModuleLoc, Path, /*IsImport*/ false))
