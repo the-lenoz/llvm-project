@@ -2406,7 +2406,7 @@ Parser::ParseModuleDecl(Sema::ModuleImportState &ImportState) {
       // Module fragment exported, so the colon is unexpected
       Diag(Tok, diag::err_pp_module_expected_ident);
     }
-    SkipUntil(tok::semi, tok::eod, SkipUntilFlags::StopBeforeMatch);
+    SkipUntil(tok::semi, SkipUntilFlags::StopBeforeMatch);
   }
   SmallVector<IdentifierLoc, 2> Path;
   if (ParseModuleName(ModuleLoc, Path, /*IsImport*/ false))
