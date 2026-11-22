@@ -2400,10 +2400,10 @@ Parser::ParseModuleDecl(Sema::ModuleImportState &ImportState) {
     }
 
     if (MDK == Sema::ModuleDeclKind::Interface) {
-      // module directive with "export" prefix, so we expect module name instead of colon
+      // module directive with "export" prefix, so we expect module name instead of colon.
       Diag(Tok, diag::err_expected_module_name);
     } else {
-      // Unexpected token (expecting 'private' keyword)
+      // Unexpected token, expecting "private" keyword.
       Diag(NextToken(), diag::err_expected) << tok::kw_private;
     }
     SkipUntil(tok::semi);

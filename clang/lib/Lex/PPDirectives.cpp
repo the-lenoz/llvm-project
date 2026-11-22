@@ -4359,15 +4359,24 @@ void Preprocessor::HandleCXXModuleDirective(Token ModuleTok) {
     DirToks.push_back(Tok);
     break;
   case tok::colon:
-    DirToks.push_back(Tok);
+    DirToks.push_back(Tok);    
     LexUnexpandedToken(Tok);
     if (Tok.isNot(tok::kw_private)) {
-      // Remember wrong token location to let parser highlight it
-      auto WrongTokLocation = Tok.getLocation();
+      // Remember wrong token location.
+      SourceLocation WrongTokLoc = Tok.getLocation();
+
+      // Discard tokens up to ';' or the end of the directive. Passing unmatched
+      // opening delimiters to the parser could make recovery skip subsequent
+      // declarations.
       while (Tok.isNoneOf(tok::semi, tok::eod, tok::eof))
         LexUnexpandedNonComment(Tok);
-      // Add semicolon to let parser recover
-      DirToks.push_back(Token::create(tok::semi, WrongTokLocation));
+      
+      // Add synthetic semicolon to let parser recover
+      // assign its location to wrong token's to let parser highlight it in diagnostics.
+      DirToks.push_back(Token::create(tok::semi, WrongTokLoc));
+
+      // Preserve the consumed end-of-directive token so the code below does not read
+      // past this directive.
       if (Tok.is(tok::eod))
         DirToks.push_back(Tok);
       break;

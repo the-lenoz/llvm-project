@@ -1,6 +1,10 @@
 // RUN: split-file %s %t
 // RUN: %clang_cc1 -std=c++20 -fsyntax-only -verify %t/implementation.cpp
 // RUN: %clang_cc1 -std=c++20 -fsyntax-only -verify %t/interface.cpp
+// RUN: not %clang_cc1 -std=c++20 -fsyntax-only -fno-caret-diagnostics %t/implementation.cpp 2>&1 \
+// RUN:   | FileCheck %s --check-prefix=IMPL-LOC
+// RUN: not %clang_cc1 -std=c++20 -fsyntax-only -fno-caret-diagnostics %t/interface.cpp 2>&1 \
+// RUN:   | FileCheck %s --check-prefix=IFACE-LOC
 // RUN: %clang_cc1 -std=c++20 -fsyntax-only -verify %t/same-line.cpp
 // RUN: %clang_cc1 -std=c++20 -fsyntax-only -verify %t/private.cpp
 // RUN: %clang_cc1 -std=c++20 -fsyntax-only -verify %t/partition.cpp
@@ -17,6 +21,11 @@
 // skipping that declaration during recovery produces an unexpected diagnostic.
 // The final failing assertion also checks that recovery does not skip to EOF.
 // Preprocessing must preserve the declarations on subsequent lines as well.
+
+// Check that the implementation diagnostic points to the first invalid token.
+// The interface diagnostic should point to the colon where a name is expected.
+// IMPL-LOC: implementation.cpp:1:9: error: expected private
+// IFACE-LOC: interface.cpp:1:15: error: expected module name
 
 // PP: constexpr int after_identifier = 42;
 // PP: constexpr int after_semicolon = 42;
